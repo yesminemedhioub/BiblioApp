@@ -1,0 +1,66 @@
+﻿@model BiblioApp.Models.Livre
+
+@{
+    ViewData["Title"] = "Supprimer un Livre";
+}
+
+<h2> Supprimer un Livre</h2>
+
+<div class="alert alert-danger">
+    Attention ! Cette action est irréversible.
+</div>
+
+<div class="card col-md-6">
+    <div class="card-body">
+
+        <h5 class="card-title">Confirmez-vous la suppression de ce livre ?</h5>
+        <hr />
+
+        <dl class="row">
+            <dt class="col-sm-4">Titre</dt>
+            <dd class="col-sm-8">@Model.Titre</dd>
+
+            <dt class="col-sm-4">ISBN</dt>
+            <dd class="col-sm-8">@Model.ISBN</dd>
+
+            <dt class="col-sm-4">Année</dt>
+            <dd class="col-sm-8">@Model.AnneePublication</dd>
+
+            <dt class="col-sm-4">Auteur</dt>
+            <dd class="col-sm-8">@Model.Auteur?.NomComplet</dd>
+
+            <dt class="col-sm-4">Disponibilité</dt>
+            <dd class="col-sm-8">
+                @if (Model.EstDisponible)
+                {
+                    <span class="badge bg-success">Disponible</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">
+                         Emprunté — impossible de supprimer
+                    </span>
+                }
+            </dd>
+        </dl>
+
+        @* Désactiver la suppression si le livre est actuellement emprunté *@
+        @if (Model.EstDisponible)
+        {
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger"> Oui, supprimer</button>
+                    <a asp-action="Index" class="btn btn-secondary">↩️ Annuler</a>
+                </div>
+            </form>
+        }
+        else
+        {
+            <a asp-action="Index" class="btn btn-secondary">↩️ Retour à la liste</a>
+        }
+
+    </div>
+</div>

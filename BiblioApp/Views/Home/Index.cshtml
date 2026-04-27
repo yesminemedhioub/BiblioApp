@@ -1,0 +1,97 @@
+﻿@model BiblioApp.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Tableau de bord";
+}
+
+<h2> Tableau de bord — Bibliothèque</h2>
+<hr />
+
+@* ===== CARTES DE STATISTIQUES ===== *@
+<div class="row mb-4">
+
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body text-center">
+                <h1 class="card-title">@Model.NombreLivres</h1>
+                <p class="card-text fs-5"> Livres au total</p>
+            </div>
+            <div class="card-footer text-center">
+                <a asp-controller="Livre" asp-action="Index"
+                   class="text-white">Voir tous les livres →</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body text-center">
+                <h1 class="card-title">@Model.NombreAuteurs</h1>
+                <p class="card-text fs-5"> Auteurs enregistrés</p>
+            </div>
+            <div class="card-footer text-center">
+                <a asp-controller="Auteur" asp-action="Index"
+                   class="text-white">Voir tous les auteurs →</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body text-center">
+                <h1 class="card-title">@Model.EmpruntsEnCours</h1>
+                <p class="card-text fs-5"> Emprunts en cours</p>
+            </div>
+            <div class="card-footer text-center">
+                <a asp-controller="Emprunt" asp-action="Index"
+                   class="text-white">Voir les emprunts →</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@* ===== TABLEAU DES 5 DERNIERS EMPRUNTS ===== *@
+<h4> 5 derniers emprunts</h4>
+
+@if (!Model.DerniersEmprunts.Any())
+{
+    <div class="alert alert-info">
+         Aucun emprunt enregistré pour le moment.
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Emprunteur</th>
+                <th>Livre</th>
+                <th>Date d'emprunt</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var emprunt in Model.DerniersEmprunts)
+            {
+                <tr>
+                    <td>@emprunt.NomEmprunteur</td>
+                    <td>@emprunt.Livre?.Titre</td>
+                    <td>@emprunt.DateEmprunt.ToShortDateString()</td>
+                    <td>
+                        @if (emprunt.DateRetour == null)
+                        {
+                            <span class="badge bg-danger"> En cours</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">
+                                 Retourné le @emprunt.DateRetour.Value.ToShortDateString()
+                            </span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

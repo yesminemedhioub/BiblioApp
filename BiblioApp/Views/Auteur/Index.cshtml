@@ -1,0 +1,45 @@
+﻿@model IEnumerable<BiblioApp.Models.Auteur>
+
+@{
+    ViewData["Title"] = "Liste des Auteurs";
+}
+
+<h2>Liste des Auteurs</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">
+        + Nouvel Auteur
+    </a>
+</p>
+
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Nom complet</th>
+            <th>Date de naissance</th>
+            <th>Nombre de livres</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var auteur in Model)
+        {
+            <tr>
+                <td>@auteur.NomComplet</td>
+                <td>@auteur.DateNaissance.ToShortDateString()</td>
+                <td>
+                    <span class="badge bg-info">
+                        @auteur.Livres.Count livre(s)
+                    </span>
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@auteur.Id"
+                       class="btn btn-sm btn-warning">Modifier</a>
+
+                    <a asp-action="Delete" asp-route-id="@auteur.Id"
+                       class="btn btn-sm btn-danger">Supprimer</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

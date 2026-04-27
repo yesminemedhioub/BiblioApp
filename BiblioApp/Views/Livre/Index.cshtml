@@ -1,0 +1,51 @@
+﻿@model IEnumerable<BiblioApp.Models.Livre>
+
+@{
+    ViewData["Title"] = "Liste des Livres";
+}
+
+<h2> Liste des Livres</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">+ Nouveau Livre</a>
+</p>
+
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Titre</th>
+            <th>ISBN</th>
+            <th>Année</th>
+            <th>Auteur</th>
+            <th>Disponibilité</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var livre in Model)
+        {
+            <tr>
+                <td>@livre.Titre</td>
+                <td>@livre.ISBN</td>
+                <td>@livre.AnneePublication</td>
+                <td>@livre.Auteur?.NomComplet</td>
+                <td>
+                    @if (livre.EstDisponible)
+                    {
+                        <span class="badge bg-success"> Disponible</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Emprunté</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@livre.Id"
+                       class="btn btn-sm btn-warning">Modifier</a>
+                    <a asp-action="Delete" asp-route-id="@livre.Id"
+                       class="btn btn-sm btn-danger">Supprimer</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

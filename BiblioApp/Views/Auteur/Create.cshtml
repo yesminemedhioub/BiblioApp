@@ -1,0 +1,56 @@
+﻿@model BiblioApp.Models.Auteur
+
+@{
+    ViewData["Title"] = "Nouvel Auteur";
+}
+
+<h2>➕ Ajouter un Auteur</h2>
+
+<div class="row">
+    <div class="col-md-6">
+
+        <form asp-action="Create" method="post">
+            @* Protection anti-CSRF — obligatoire sur tous les formulaires POST *@
+            @Html.AntiForgeryToken()
+
+            @* Affiche un résumé de toutes les erreurs de validation en haut *@
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            @* Champ NOM *@
+            <div class="mb-3">
+                <label asp-for="Nom" class="form-label"></label>
+                <input asp-for="Nom" class="form-control" placeholder="Ex: Hugo" />
+                <span asp-validation-for="Nom" class="text-danger"></span>
+            </div>
+
+            @* Champ PRENOM *@
+            <div class="mb-3">
+                <label asp-for="Prenom" class="form-label"></label>
+                <input asp-for="Prenom" class="form-control" placeholder="Ex: Victor" />
+                <span asp-validation-for="Prenom" class="text-danger"></span>
+            </div>
+
+            @* Champ DATE DE NAISSANCE *@
+            <div class="mb-3">
+                <label asp-for="DateNaissance" class="form-label"></label>
+                <input asp-for="DateNaissance" type="date" class="form-control" />
+                <span asp-validation-for="DateNaissance" class="text-danger"></span>
+            </div>
+
+            @* Boutons *@
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">Enregistrer</button>
+                <a asp-action="Index" class="btn btn-secondary">Annuler</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@* Scripts de validation côté client (jQuery Validate) *@
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
