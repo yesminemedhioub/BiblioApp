@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
-using BiblioApp.Models;
+﻿using BiblioApp.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace BiblioApp.Data;
 
-public class BiblioContext : DbContext
+public class BiblioContext : IdentityDbContext<IdentityUser>
 {
     public BiblioContext(DbContextOptions<BiblioContext> options) : base(options) { }
 
@@ -13,6 +15,7 @@ public class BiblioContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         // Auteur → Livres (Restrict = ne supprime pas les livres si on supprime l'auteur)
         modelBuilder.Entity<Livre>()
             .HasOne(l => l.Auteur)

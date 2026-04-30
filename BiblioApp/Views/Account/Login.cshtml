@@ -1,0 +1,67 @@
+﻿@model BiblioApp.Models.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Connexion";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white text-center">
+                <h4>🔐 Connexion</h4>
+            </div>
+            <div class="card-body">
+
+                <form asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control"
+                               placeholder="exemple@email.com" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label"></label>
+                        <input asp-for="Password" class="form-control"
+                               placeholder="Mot de passe" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label"></label>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100">
+                        🔓 Se connecter
+                    </button>
+                </form>
+
+                <hr />
+                <p class="text-center">
+                    Pas encore de compte ?
+                    <a asp-action="Register">S'inscrire</a>
+                </p>
+
+            </div>
+        </div>
+
+        @* Compte admin par défaut pour les tests *@
+        <div class="alert alert-info mt-3">
+            <strong>Compte Admin par défaut :</strong><br />
+            📧 admin@biblio.com<br />
+            🔑 Admin123
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
