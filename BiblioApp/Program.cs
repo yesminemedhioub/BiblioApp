@@ -1,6 +1,7 @@
 using BiblioApp.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,23 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddControllersWithViews();
 
+//ajout de Swagger pour la documentation de l'API
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "BiblioApp API",
+        Version = "v1",
+        Description = "API REST pour la gestion de la bibliothèque",
+        Contact = new OpenApiContact
+        {
+            Name = "BiblioApp",
+            Email = "admin@biblio.com"
+        }
+    });
+});
+
 var app = builder.Build();
 
 //  Initialiser les rôles et l'admin au démarrage
@@ -34,6 +52,14 @@ using (var scope = app.Services.CreateScope())
 {
     await DbInitializer.InitializeAsync(scope.ServiceProvider);
 }
+
+// Configurer Swagger
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BiblioApp API v1");
+    c.RoutePrefix = "api-docs"; // Accès à la documentation via /api-docs
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

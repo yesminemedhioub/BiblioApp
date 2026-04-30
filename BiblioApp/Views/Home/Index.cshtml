@@ -13,6 +13,7 @@
     <div class="col-md-4">
         <div class="card text-white bg-primary mb-3">
             <div class="card-body text-center">
+                <i class="bi bi-book" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
                 <h1 class="card-title">@Model.NombreLivres</h1>
                 <p class="card-text fs-5"> Livres au total</p>
             </div>
@@ -26,6 +27,7 @@
     <div class="col-md-4">
         <div class="card text-white bg-success mb-3">
             <div class="card-body text-center">
+                <i class="bi bi-people" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
                 <h1 class="card-title">@Model.NombreAuteurs</h1>
                 <p class="card-text fs-5"> Auteurs enregistrés</p>
             </div>
@@ -39,6 +41,7 @@
     <div class="col-md-4">
         <div class="card text-white bg-danger mb-3">
             <div class="card-body text-center">
+                <i class="bi bi-clock-history" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
                 <h1 class="card-title">@Model.EmpruntsEnCours</h1>
                 <p class="card-text fs-5"> Emprunts en cours</p>
             </div>
@@ -52,7 +55,7 @@
 </div>
 
 @* ===== TABLEAU DES 5 DERNIERS EMPRUNTS ===== *@
-<h4> 5 derniers emprunts</h4>
+<h4> <i class="bi bi-clipboard"></i> 5 derniers emprunts</h4>
 
 @if (!Model.DerniersEmprunts.Any())
 {
@@ -65,10 +68,10 @@ else
     <table class="table table-bordered table-hover">
         <thead class="table-dark">
             <tr>
-                <th>Emprunteur</th>
-                <th>Livre</th>
-                <th>Date d'emprunt</th>
-                <th>Statut</th>
+                <th><i class="bi bi-person"></i> Emprunteur</th>
+                <th><i class="bi bi-book"></i> Livre</th>
+                <th><i class="bi bi-calendar"></i> Date d'emprunt</th>
+                <th><i class="bi bi-info-circle"></i> Statut</th>
             </tr>
         </thead>
         <tbody>
