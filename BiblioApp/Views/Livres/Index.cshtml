@@ -1,65 +1,121 @@
-﻿@using Microsoft.AspNetCore.Identity
-@model IEnumerable<BiblioApp.Models.Livre>
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@using Microsoft.AspNetCore.Identity
+@model X.PagedList.IPagedList<BiblioApp.Models.Livre>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Liste des Livres";
 }
 
-<h1><i class="bi bi-book"></i> Livres</h1>
+<h2><i class="bi bi-book"></i> Liste des Livres</h2>
 
-@if (User.IsInRole("Admin") || User.IsInRole("Bibliothecaire"))
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form asp-action="Index" method="get" class="d-flex gap-2">
+            <input type="text" name="search" value="@ViewBag.Search"
+                   class="form-control" placeholder="Rechercher par titre, ISBN, auteur..." />
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-search"></i>
+            </button>
+            @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            }
+        </form>
+    </div>
+    <div class="col-md-6 text-end">
+        @if (User.IsInRole("Admin") || User.IsInRole("Bibliothecaire"))
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nouveau Livre
+            </a>
+        }
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(ViewBag.Search as string))
 {
-    <p>
-        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Nouveau Livre</a>
-    </p>
+    <div class="alert alert-info">
+        🔍 Résultats pour : <strong>@ViewBag.Search</strong>
+        — @Model.TotalItemCount résultat(s) trouvé(s)
+    </div>
 }
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Titre)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ISBN)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.AnneePublication)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Auteur)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Titre)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ISBN)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AnneePublication)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Auteur.Nom)
-            </td>
-            <td>
-                @if (User.IsInRole("Admin") || User.IsInRole("Bibliothecaire"))
-                {
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i> Modifier</a>
-                    <span> </span>
-                }
-                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info"><i class="bi bi-eye"></i> Détails</a>
-                @if (User.IsInRole("Admin"))
-                {
-                    <span> </span>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i> Supprimer</a>
-                }
-            </td>
-        </tr>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning">📭 Aucun livre trouvé.</div>
 }
-    </tbody>
-</table>
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Titre</th>
+                <th>ISBN</th>
+                <th>Année</th>
+                <th>Auteur</th>
+                <th>Disponibilité</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Titre</td>
+                    <td>@item.ISBN</td>
+                    <td>@item.AnneePublication</td>
+                    <td>@item.Auteur?.NomComplet</td>
+                    <td>
+                        @if (item.EstDisponible)
+                        {
+                            <span class="badge bg-success">✅ Disponible</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">❌ Emprunté</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id"
+                           class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Bibliothecaire"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id"
+                               class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-action="Delete" asp-route-id="@item.Id"
+                               class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @* Pagination *@
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <span class="text-muted">
+            Page @Model.PageNumber sur @Model.PageCount
+            — @Model.TotalItemCount élément(s) au total
+        </span>
+        @Html.PagedListPager(Model, page => Url.Action("Index",
+        new { page, search = ViewBag.Search }),
+        new X.PagedList.Mvc.Core.PagedListRenderOptions
+        {
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" },
+            UlElementClasses = new[] { "pagination" }
+        })
+</div>
+}

@@ -1,47 +1,52 @@
 ﻿@model BiblioApp.Models.Emprunt
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Nouvel Emprunt";
 }
 
-<h1>Create</h1>
-
-<h4>Emprunt</h4>
+<h2><i class="bi bi-plus-circle"></i> Nouvel Emprunt</h2>
 <hr />
+
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-5">
         <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="NomEmprunteur" class="control-label"></label>
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="NomEmprunteur" class="form-label"></label>
                 <input asp-for="NomEmprunteur" class="form-control" />
                 <span asp-validation-for="NomEmprunteur" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="DateEmprunt" class="control-label"></label>
-                <input asp-for="DateEmprunt" class="form-control" />
+
+            @* Date pré-remplie avec aujourd'hui *@
+            <div class="mb-3">
+                <label asp-for="DateEmprunt" class="form-label"></label>
+                <input asp-for="DateEmprunt" type="date" class="form-control"
+                       value="@DateTime.Now.ToString("yyyy-MM-dd")" />
                 <span asp-validation-for="DateEmprunt" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="DateRetour" class="control-label"></label>
-                <input asp-for="DateRetour" class="form-control" />
-                <span asp-validation-for="DateRetour" class="text-danger"></span>
+
+            @* Liste des livres disponibles *@
+            <div class="mb-3">
+                <label asp-for="LivreId" class="form-label">Livre disponible</label>
+                <select asp-for="LivreId" class="form-select"
+                        asp-items="ViewBag.LivreId">
+                    <option value="">-- Choisir un livre --</option>
+                </select>
+                <span asp-validation-for="LivreId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="LivreId" class="control-label"></label>
-                <select asp-for="LivreId" class ="form-control" asp-items="ViewBag.LivreId"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <div class="d-flex gap-2">
+                <input type="submit" value=" Enregistrer" class="btn btn-success" />
+                <a asp-action="Index" class="btn btn-secondary">↩️ Annuler</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

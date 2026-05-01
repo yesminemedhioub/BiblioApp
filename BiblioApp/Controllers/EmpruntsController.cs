@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BiblioApp.Data;
+using BiblioApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using BiblioApp.Data;
-using BiblioApp.Models;
+using X.PagedList;
+using X.PagedList.Extensions;
 
 namespace BiblioApp.Controllers
 {
@@ -22,10 +24,31 @@ namespace BiblioApp.Controllers
         }
 
         // GET: Emprunts
-        public async Task<IActionResult> Index()
+        public IActionResult Index(string? search, int page = 1)
         {
-            var biblioContext = _context.Emprunts.Include(e => e.Livre);
-            return View(await biblioContext.ToListAsync());
+            int pageSize = 5;
+
+            var query = _context.Emprunts
+                .Where(e => e.DateRetour == null)
+                .Include(e => e.Livre)
+                    .ThenInclude(l => l!.Auteur)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(e =>
+                    e.NomEmprunteur.Contains(search) ||
+                    e.Livre!.Titre.Contains(search)
+                );
+            }
+
+            var emprunts = query
+                .OrderByDescending(e => e.DateEmprunt)
+                .ToList()
+                .ToPagedList(page, pageSize);
+
+            ViewBag.Search = search;
+            return View(emprunts);
         }
 
         // GET: Emprunts/Details/5
@@ -51,7 +74,12 @@ namespace BiblioApp.Controllers
         [Authorize(Roles = "Admin,Bibliothecaire")]
         public IActionResult Create()
         {
-            ViewData["LivreId"] = new SelectList(_context.Livres, "Id", "ISBN");
+            var livresDisponibles = _context.Livres
+                .Include(l => l.Emprunts)
+                .Where(l => !l.Emprunts.Any(e => e.DateRetour == null))
+                .ToList();
+
+            ViewData["LivreId"] = new SelectList(livresDisponibles, "Id", "Titre");
             return View();
         }
 
@@ -69,7 +97,11 @@ namespace BiblioApp.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["LivreId"] = new SelectList(_context.Livres, "Id", "ISBN", emprunt.LivreId);
+            var livresDisponibles = _context.Livres
+                .Include(l => l.Emprunts)
+                .Where(l => !l.Emprunts.Any(e => e.DateRetour == null))
+                .ToList();
+            ViewData["LivreId"] = new SelectList(livresDisponibles, "Id", "Titre");
             return View(emprunt);
         }
 
@@ -163,6 +195,20 @@ namespace BiblioApp.Controllers
         private bool EmpruntExists(int id)
         {
             return _context.Emprunts.Any(e => e.Id == id);
+        }
+
+        // POST: Emprunts/Retourner
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Bibliothecaire")]
+        public async Task<IActionResult> Retourner(int id)
+        {
+            var emprunt = await _context.Emprunts.FindAsync(id);
+            if (emprunt == null) return NotFound();
+
+            emprunt.DateRetour = DateTime.Now;
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
     }
 }

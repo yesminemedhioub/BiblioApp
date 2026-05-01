@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BiblioApp.Data;
+using BiblioApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using BiblioApp.Data;
-using BiblioApp.Models;
+using X.PagedList;
+using X.PagedList.Extensions;
+
 
 namespace BiblioApp.Controllers
 {
@@ -22,9 +25,29 @@ namespace BiblioApp.Controllers
         }
 
         // GET: Auteurs
-        public async Task<IActionResult> Index()
+        public IActionResult Index(string? search, int page = 1)
         {
-            return View(await _context.Auteurs.ToListAsync());
+            int pageSize = 5;
+
+            var query = _context.Auteurs
+                .Include(a => a.Livres)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(a =>
+                    a.Nom.Contains(search) ||
+                    a.Prenom.Contains(search)
+                );
+            }
+
+            var auteurs = query
+                .OrderBy(a => a.Nom)
+                .ToList()
+                .ToPagedList(page, pageSize);
+
+            ViewBag.Search = search;
+            return View(auteurs);
         }
 
         // GET: Auteurs/Details/5

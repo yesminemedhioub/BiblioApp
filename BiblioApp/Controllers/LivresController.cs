@@ -8,6 +8,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BiblioApp.Data;
 using BiblioApp.Models;
+using X.PagedList;
+using X.PagedList.Extensions;
+
+
 
 namespace BiblioApp.Controllers
 {
@@ -22,10 +26,32 @@ namespace BiblioApp.Controllers
         }
 
         // GET: Livres
-        public async Task<IActionResult> Index()
+        public IActionResult Index(string? search, int page = 1)
         {
-            var biblioContext = _context.Livres.Include(l => l.Auteur);
-            return View(await biblioContext.ToListAsync());
+            int pageSize = 5;
+
+            var query = _context.Livres
+                .Include(l => l.Auteur)
+                .Include(l => l.Emprunts)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(l =>
+                    l.Titre.Contains(search) ||
+                    l.ISBN.Contains(search) ||
+                    l.Auteur!.Nom.Contains(search) ||
+                    l.Auteur!.Prenom.Contains(search)
+                );
+            }
+
+            var livres = query
+                .OrderBy(l => l.Titre)
+                .ToList()
+                .ToPagedList(page, pageSize);
+
+            ViewBag.Search = search;
+            return View(livres);
         }
 
         // GET: Livres/Details/5
