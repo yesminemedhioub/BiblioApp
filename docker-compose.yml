@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # SQL Server Database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: biblio_db
+    environment:
+      SA_PASSWORD: "YourStrong@Password123"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "YourStrong@Password123", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - biblio_network
+
+  # BiblioApp Application
+  biblioapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: biblio_app
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=BiblioDbS;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=True;Connection Timeout=30;
+      - ASPNETCORE_URLS=http://+:8080
+      - Notifications__N8nBaseUrl=http://n8n:5678
+      - Notifications__WebhookPath=/webhook-test/biblio-notify
+    ports:
+      - "8080:8080"
+    depends_on:
+      - sqlserver
+    networks:
+      - biblio_network
+    restart: unless-stopped
+
+  # n8n Workflow Automation
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: biblio_n8n
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=admin123
+      # ── FIXED: use the Docker service name, not localhost ──────────────────
+      - N8N_HOST=n8n
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://n8n:5678/
+      # ──────────────────────────────────────────────────────────────────────
+      - DB_TYPE=postgres
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=n8n_password_123
+      - NODE_ENV=production
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+    networks:
+      - biblio_network
+    restart: unless-stopped
+
+  # PostgreSQL for n8n
+  postgres:
+    image: postgres:15-alpine
+    container_name: biblio_postgres
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: n8n_password_123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - biblio_network
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+  postgres_data:
+  n8n_data:
+
+networks:
+  biblio_network:
+    driver: bridge

@@ -1,79 +1,88 @@
 using BiblioApp.Data;
+using BiblioApp.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// ── Database ──────────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<BiblioContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+        }));
 
+// ── Notification service (single, email-only via n8n) ─────────────────────────
+// BaseAddress is set here so PostAsync can use a relative path.
+// The full webhook path comes from appsettings.json → Notifications:WebhookPath.
+builder.Services.AddHttpClient<INotificationService, NotificationService>(client =>
+{
+    var baseUrl = builder.Configuration["Notifications:N8nBaseUrl"] ?? "http://n8n:5678";
+    client.BaseAddress = new Uri(baseUrl);
+    client.Timeout     = TimeSpan.FromSeconds(30);
+});
+
+// ── Identity ──────────────────────────────────────────────────────────────────
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
-    // Règles mot de passe (simplifié pour le dev)
-    options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 6;
+    options.Password.RequireDigit           = true;
+    options.Password.RequiredLength         = 6;
     options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
+    options.Password.RequireUppercase       = false;
 })
 .AddEntityFrameworkStores<BiblioContext>()
 .AddDefaultTokenProviders();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/Account/Login";
+    options.LoginPath       = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
+// ── MVC + Swagger ─────────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
-
-//ajout de Swagger pour la documentation de l'API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "BiblioApp API",
-        Version = "v1",
+        Title       = "BiblioApp API",
+        Version     = "v1",
         Description = "API REST pour la gestion de la bibliothèque",
-        Contact = new OpenApiContact
-        {
-            Name = "BiblioApp",
-            Email = "admin@biblio.com"
-        }
+        Contact     = new OpenApiContact { Name = "BiblioApp", Email = "admin@biblio.com" }
     });
 });
 
+// ── App pipeline ──────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-//  Initialiser les rôles et l'admin au démarrage
 using (var scope = app.Services.CreateScope())
 {
     await DbInitializer.InitializeAsync(scope.ServiceProvider);
 }
 
-// Configurer Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "BiblioApp API v1");
-    c.RoutePrefix = "api-docs"; // Accès à la documentation via /api-docs
+    c.RoutePrefix = "api-docs";
 });
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
 

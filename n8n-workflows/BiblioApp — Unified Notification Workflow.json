@@ -1,0 +1,91 @@
+{
+  "name": "BiblioApp — Unified Notification Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "biblio-notify",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "name": "Webhook — Receive Notification",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [-256, 112],
+      "webhookId": "biblio-unified-webhook",
+      "id": "5a5d7514-13ab-4be9-9d7f-6ea264b9c586",
+      "notes": "Receives POST from BiblioApp at /webhook/biblio-notify.\nExpected JSON body fields (sent at root level, NOT nested):\n  email    – recipient address\n  subject  – email subject\n  message  – plain-text body\n  timestamp – ISO 8601 string"
+    },
+    {
+      "parameters": {
+        "fromEmail": "adammaazoun@gmail.com",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [144, 96],
+      "id": "c3729fcd-11ae-4256-a1db-bbc85862d43a",
+      "name": "Send an Email",
+      "credentials": {
+        "smtp": {
+          "id": "KpCXM5emYyTctRH0",
+          "name": "SMTP account"
+        }
+      },
+      "notes": "IMPORTANT: Re-link your SMTP credential after importing.\nThe credential ID above is instance-specific and will not match your n8n."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'success', channel: 'email', timestamp: new Date().toISOString() }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "name": "Respond — OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [512, 112],
+      "id": "4fb12efa-2ca7-481c-a909-24e84a52e8b5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook — Receive Notification": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an Email": {
+      "main": [
+        [
+          {
+            "node": "Respond — OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9644888a-60fb-48a1-84b6-520a4c4e7364",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "JjaASpQvcLuUc0AF",
+  "tags": []
+}

@@ -1,42 +1,38 @@
-﻿@model BiblioApp.Models.Emprunt
+@model BiblioApp.Models.Emprunt
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Détails de l'emprunt";
 }
 
-<h1>Details</h1>
+<h2><i class="bi bi-clipboard-check"></i> Détails de l'emprunt</h2>
+<hr />
 
-<div>
-    <h4>Emprunt</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NomEmprunteur)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NomEmprunteur)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DateEmprunt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DateEmprunt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DateRetour)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DateRetour)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Livre)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Livre.ISBN)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+<dl class="row">
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.NomEmprunteur)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(m => m.NomEmprunteur)</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.EmailEmprunteur)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(m => m.EmailEmprunteur)</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.DateEmprunt)</dt>
+    <dd class="col-sm-9">@Model.DateEmprunt.ToShortDateString()</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.DateEcheance)</dt>
+    <dd class="col-sm-9">
+        @Model.DateEcheance.ToShortDateString()
+        @if (Model.DateRetour == null && Model.DateEcheance < DateTime.Now)
+        {
+            <span class="badge bg-danger ms-2">En retard</span>
+        }
+    </dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.DateRetour)</dt>
+    <dd class="col-sm-9">
+        @(Model.DateRetour.HasValue ? Model.DateRetour.Value.ToShortDateString() : "—")
+    </dd>
+
+    <dt class="col-sm-3">Livre</dt>
+    <dd class="col-sm-9">@Model.Livre?.Titre</dd>
+</dl>
+
+<a asp-action="Index" class="btn btn-secondary">↩️ Retour</a>

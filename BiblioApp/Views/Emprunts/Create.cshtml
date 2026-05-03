@@ -1,4 +1,4 @@
-﻿@model BiblioApp.Models.Emprunt
+@model BiblioApp.Models.Emprunt
 
 @{
     ViewData["Title"] = "Nouvel Emprunt";
@@ -8,18 +8,25 @@
 <hr />
 
 <div class="row">
-    <div class="col-md-5">
+    <div class="col-md-6">
         <form asp-action="Create">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
             <div class="mb-3">
                 <label asp-for="NomEmprunteur" class="form-label"></label>
-                <input asp-for="NomEmprunteur" class="form-control" />
+                <input asp-for="NomEmprunteur" class="form-control" placeholder="Nom et prénom" />
                 <span asp-validation-for="NomEmprunteur" class="text-danger"></span>
             </div>
 
-            @* Date pré-remplie avec aujourd'hui *@
+            <div class="mb-3">
+                <label asp-for="EmailEmprunteur" class="form-label"></label>
+                <input asp-for="EmailEmprunteur" type="email" class="form-control"
+                       placeholder="adresse@email.com" />
+                <span asp-validation-for="EmailEmprunteur" class="text-danger"></span>
+                <div class="form-text">Un email de confirmation sera envoyé à cette adresse.</div>
+            </div>
+
             <div class="mb-3">
                 <label asp-for="DateEmprunt" class="form-label"></label>
                 <input asp-for="DateEmprunt" type="date" class="form-control"
@@ -27,7 +34,14 @@
                 <span asp-validation-for="DateEmprunt" class="text-danger"></span>
             </div>
 
-            @* Liste des livres disponibles *@
+            <div class="mb-3">
+                <label asp-for="DateEcheance" class="form-label"></label>
+                <input asp-for="DateEcheance" type="date" class="form-control"
+                       value="@DateTime.Now.AddDays(14).ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="DateEcheance" class="text-danger"></span>
+                <div class="form-text">Par défaut : 14 jours à partir d'aujourd'hui.</div>
+            </div>
+
             <div class="mb-3">
                 <label asp-for="LivreId" class="form-label">Livre disponible</label>
                 <select asp-for="LivreId" class="form-select"
@@ -38,7 +52,7 @@
             </div>
 
             <div class="d-flex gap-2">
-                <input type="submit" value=" Enregistrer" class="btn btn-success" />
+                <input type="submit" value="Enregistrer" class="btn btn-success" />
                 <a asp-action="Index" class="btn btn-secondary">↩️ Annuler</a>
             </div>
         </form>
